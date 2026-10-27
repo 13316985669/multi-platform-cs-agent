@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>伪小红书创作服务平台 - 发布页（测试 fixture）</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; }
+  .login-form { display: none; padding: 20px; background: #fee; }
+  .publish-entry { padding: 16px; background: #f6f6f6; width: 480px; }
+  .tab-image-text { padding: 6px 12px; background: #ddd; cursor: pointer; display: inline-block; }
+  .tab-image-text.active { background: #ff2442; color: #fff; }
+  .title-input, .topic-input { width: 100%; margin-top: 10px; padding: 6px; }
+  .body-editor { width: 100%; min-height: 80px; margin-top: 10px; padding: 6px; background: #fff; border: 1px solid #ccc; }
+  .image-upload { margin-top: 10px; }
+  .topic-suggestion-item { padding: 4px 8px; background: #eef; cursor: pointer; display: none; margin-top: 4px; }
+  .submit-button { margin-top: 12px; padding: 8px 20px; background: #ff2442; color: #fff; border: none; cursor: pointer; }
+  .publish-success-toast { display: none; margin-top: 12px; padding: 8px; background: #e6f7e6; color: #2a7a2a; }
+  #uploadedCount { margin-top: 6px; color: #666; }
+</style>
+</head>
+<body>
+<div class="login-form">登录表单（可见 = 登录过期）</div>
+
+<div class="publish-entry">
+  <div class="tab-image-text" onclick="this.classList.add('active')">图文</div>
+  <input class="title-input" maxlength="20" placeholder="填写标题">
+  <div class="body-editor" contenteditable="true"></div>
+  <input class="topic-input" placeholder="#话题">
+  <div class="topic-suggestion-item" onclick="selectTopic()">话题候选</div>
+  <input type="file" class="image-upload" multiple onchange="onUpload(this)">
+  <div id="uploadedCount"></div>
+  <div id="topics"></div>
+  <button class="submit-button" onclick="onSubmit()">发布</button>
+  <div class="publish-success-toast">发布成功</div>
+</div>
+
+<button onclick="document.querySelector('.login-form').style.display='block'">切换登录过期</button>
+
+<script>
+let topics = [];
+
+function onUpload(input) {
+  document.getElementById('uploadedCount').innerText = '已上传 ' + input.files.length + ' 张图';
+}
+
+document.querySelector('.topic-input').addEventListener('input', function () {
+  // 输入 # 开头时显示话题候选（模拟真实平台联想）
+  document.querySelector('.topic-suggestion-item').style.display =
+    this.value.startsWith('#') && this.value.length > 1 ? 'block' : 'none';
+});
+
+function selectTopic() {
+  const input = document.querySelector('.topic-input');
+  topics.push(input.value.replace(/^#/, ''));
+  document.getElementById('topics').innerText = '话题: ' + topics.join(', ');
+  input.value = '';
+  document.querySelector('.topic-suggestion-item').style.display = 'none';
+}
+
+function onSubmit() {
+  const title = document.querySelector('.title-input').value;
+  const body = document.querySelector('.body-editor').innerText;
+  if (!title || !body) return;  // 缺标题/正文不弹成功（模拟平台校验）
+  setTimeout(() => {
+    document.querySelector('.publish-success-toast').style.display = 'block';
+  }, 300);
+}
+</script>
+</body>
+</html>

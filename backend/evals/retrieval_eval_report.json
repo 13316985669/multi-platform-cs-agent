@@ -1,0 +1,109 @@
+{
+  "samples_total": 1368,
+  "evaluated": 118,
+  "skipped_no_expected_faq": 1250,
+  "hit_at_3": 0.8983,
+  "mrr_at_3": 0.8771,
+  "passed_rate": 0.8983,
+  "reasons": {
+    "passed": 113,
+    "rerank_below_threshold": 5
+  },
+  "missed_examples": [
+    {
+      "question": "怎么联系",
+      "reason": "rerank_below_threshold",
+      "got_doc_ids": []
+    },
+    {
+      "question": "微信多少",
+      "reason": "rerank_below_threshold",
+      "got_doc_ids": []
+    },
+    {
+      "question": "银行开户",
+      "reason": "passed",
+      "got_doc_ids": [
+        49,
+        2865,
+        2863
+      ]
+    },
+    {
+      "question": "香港公司注册\n香港公司开户\n微信联系~",
+      "reason": "passed",
+      "got_doc_ids": [
+        101,
+        2938,
+        8
+      ]
+    },
+    {
+      "question": "香港注册",
+      "reason": "passed",
+      "got_doc_ids": [
+        6,
+        52,
+        2827
+      ]
+    },
+    {
+      "question": "你好 香港年审费用报个价",
+      "reason": "passed",
+      "got_doc_ids": [
+        2226,
+        2220,
+        2230
+      ]
+    },
+    {
+      "question": "办理流程复杂吗",
+      "reason": "rerank_below_threshold",
+      "got_doc_ids": []
+    },
+    {
+      "question": "办理流程是怎样的\n我要注册香港公司",
+      "reason": "passed",
+      "got_doc_ids": [
+        2938,
+        6,
+        2827
+      ]
+    },
+    {
+      "question": "有什么区别",
+      "reason": "rerank_below_threshold",
+      "got_doc_ids": []
+    },
+    {
+      "question": "公司注册➕开户多少钱，一年记账服务费多少钱",
+      "reason": "passed",
+      "got_doc_ids": [
+        2845,
+        2229
+      ]
+    },
+    {
+      "question": "这是什么证？",
+      "reason": "rerank_below_threshold",
+      "got_doc_ids": []
+    },
+    {
+      "question": "这是做什么的",
+      "reason": "passed",
+      "got_doc_ids": [
+        2211,
+        2199,
+        2210
+      ]
+    }
+  ],
+  "params": {
+    "rag_rerank_threshold": 0.35,
+    "rag_dense_min_score": 0.3,
+    "rag_dense_absolute_min": 0.45,
+    "rag_relative_score_ratio": 0.65,
+    "embedding_configured": true,
+    "rerank_configured": true
+  }
+}

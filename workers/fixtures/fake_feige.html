@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>伪飞鸽客服后台（测试 fixture）</title>
+<style>
+  body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; }
+  .conversation-list { width: 260px; border-right: 1px solid #ddd; overflow-y: auto; }
+  .conversation-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; }
+  .conversation-item.active { background: #e8f0fe; }
+  .unread-badge { background: red; color: #fff; border-radius: 8px; font-size: 12px; padding: 0 6px; }
+  .chat-pane { flex: 1; display: flex; flex-direction: column; }
+  .message-list { flex: 1; overflow-y: auto; padding: 16px; }
+  .message-item { margin: 8px 0; max-width: 70%; padding: 8px 12px; border-radius: 12px; clear: both; }
+  .message-item[data-side="user"] { background: #f1f1f1; float: left; }
+  .message-item[data-side="self"] { background: #95c8f5; float: right; }
+  .input-area { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #ddd; }
+  .chat-input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+  .send-button { padding: 8px 20px; background: #1f6feb; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+  .sim-panel { position: fixed; right: 0; top: 0; width: 240px; background: #fffbe6; border: 1px solid #f0c36d; padding: 10px; font-size: 13px; z-index: 99; }
+  .sim-panel input, .sim-panel select, .sim-panel button { width: 100%; margin: 4px 0; box-sizing: border-box; }
+  .login-form { display: none; position: fixed; inset: 0; background: #fff; z-index: 100; padding: 40px; }
+  .platform-bot-enabled { display: none; }
+</style>
+</head>
+<body>
+<!-- 登录表单：显示即代表登录过期（doctor/自检用） -->
+<div class="login-form" id="loginForm">请扫码登录（模拟）</div>
+<!-- 平台自带机器人开启标记：取消注释即视为未关闭（doctor 检查用） -->
+<!-- <div class="platform-bot-enabled"></div> -->
+
+<div class="conversation-list" id="convList"></div>
+
+<div class="chat-pane">
+  <div class="message-list" id="msgList"></div>
+  <div class="input-area">
+    <input type="file" id="fileInput" style="width:180px">
+    <input class="chat-input" id="chatInput" placeholder="输入回复">
+    <button class="send-button" id="sendBtn">发送</button>
+  </div>
+</div>
+
+<!-- 模拟面板：注入用户消息（测试/演示用） -->
+<div class="sim-panel">
+  <b>模拟用户面板</b>
+  <select id="simConv"></select>
+  <input id="simText" placeholder="用户消息内容">
+  <select id="simType">
+    <option value="text">文本</option>
+    <option value="image">图片</option>
+    <option value="voice">语音</option>
+  </select>
+  <button onclick="injectUserMessage()">注入用户消息</button>
+  <button onclick="toggleLogin()">切换登录过期</button>
+</div>
+
+<script>
+// ---- 数据 ----
+const conversations = [
+  { key: 'conv_a', nickname: '买家小王', messages: [], unread: false },
+  { key: 'conv_b', nickname: '买家小李', messages: [], unread: false },
+];
+let activeConv = null;
+let midSeq = 1;
+
+// 1x1 透明 PNG（模拟用户图片）
+const FAKE_IMG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+// 极短静音 ogg（模拟用户语音，仅结构占位）
+const FAKE_AUDIO = 'data:audio/ogg;base64,T2dnUwACAAAAAAAAAADn7Ml+AAAAAM9b4qYBHgF2b3JiaXMAAAAAAQC7AAAAAAAAAJQBAAAAAAA=';
+
+// ---- 渲染 ----
+function renderConvs() {
+  const list = document.getElementById('convList');
+  list.innerHTML = '';
+  conversations.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'conversation-item' + (activeConv === c.key ? ' active' : '');
+    div.setAttribute('data-conv', c.key);
+    div.innerHTML = `<span class="conv-nickname">${c.nickname}</span>` +
+      (c.unread ? '<span class="unread-badge">●</span>' : '');
+    div.onclick = () => { activeConv = c.key; c.unread = false; renderConvs(); renderMsgs(); };
+    list.appendChild(div);
+  });
+  const sel = document.getElementById('simConv');
+  sel.innerHTML = conversations.map(c => `<option value="${c.key}">${c.nickname}</option>`).join('');
+}
+
+function renderMsgs() {
+  const list = document.getElementById('msgList');
+  list.innerHTML = '';
+  const conv = conversations.find(c => c.key === activeConv);
+  if (!conv) return;
+  conv.messages.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'message-item';
+    div.setAttribute('data-mid', m.mid);
+    div.setAttribute('data-side', m.side);
+    if (m.type === 'image') {
+      div.innerHTML = `<img class="message-image" src="${m.media}">`;
+    } else if (m.type === 'voice') {
+      div.innerHTML = `<audio class="message-audio" controls src="${m.media}"></audio>`;
+    } else {
+      div.innerHTML = `<span class="message-text"></span>`;
+      div.querySelector('.message-text').textContent = m.text;
+    }
+    list.appendChild(div);
+  });
+}
+
+// ---- 行为 ----
+// 客服发送（Worker 操作）：追加我方气泡
+document.getElementById('sendBtn').onclick = () => {
+  if (!activeConv) return;
+  const conv = conversations.find(c => c.key === activeConv);
+  const text = document.getElementById('chatInput').value;
+  const file = document.getElementById('fileInput').files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      conv.messages.push({ mid: 'm' + (midSeq++), side: 'self', type: 'image', media: reader.result });
+      renderMsgs();
+    };
+    reader.readAsDataURL(file);
+    document.getElementById('fileInput').value = '';
+  }
+  if (text) {
+    conv.messages.push({ mid: 'm' + (midSeq++), side: 'self', type: 'text', text });
+    document.getElementById('chatInput').value = '';
+    renderMsgs();
+  }
+};
+
+// 注入用户消息（模拟面板）
+function injectUserMessage() {
+  const key = document.getElementById('simConv').value;
+  const type = document.getElementById('simType').value;
+  const text = document.getElementById('simText').value;
+  const conv = conversations.find(c => c.key === key);
+  const msg = { mid: 'm' + (midSeq++), side: 'user', type, text };
+  if (type === 'image') msg.media = FAKE_IMG;
+  if (type === 'voice') msg.media = FAKE_AUDIO;
+  conv.messages.push(msg);
+  conv.unread = true;
+  document.getElementById('simText').value = '';
+  renderConvs();
+  if (activeConv === key) renderMsgs();
+}
+
+function toggleLogin() {
+  const f = document.getElementById('loginForm');
+  f.style.display = f.style.display === 'block' ? 'none' : 'block';
+}
+
+renderConvs();
+</script>
+</body>
+</html>

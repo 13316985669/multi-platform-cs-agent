@@ -1,0 +1,16 @@
+---
+description: Frontend React/Next/Vue + TS + CSS + state management
+alwaysApply: false
+globs: "**/*.ts,**/*.tsx,**/*.js,**/*.jsx,**/*.vue,src/**,app/**"
+---
+# 前端编码规范
+1. TypeScript 严格模式，尽量避免 any；使用 interface/type 抽离类型，复用类型。
+2. React：函数组件 + hooks；禁止 class 组件；避免不必要重渲染（memo、useMemo、useCallback 按需使用，不滥用）。
+3. NextJS：区分 Server / Client 组件，合理拆分；数据请求放服务端，减少客户端请求。
+4. Vue：组合式API `<script setup>`，选项式仅维护旧代码。
+5. 状态管理：优先内置状态，复杂全局状态使用项目已选定方案（Zustand/Pinia/Redux），不随意引入新状态库。
+6. 表单校验：Zod / Yup；请求封装统一 axios/fetch 实例，统一拦截器。
+7. 样式：遵循项目现有方案（Tailwind / CSS Module / styled-components），不混用多套样式方案。
+8. 资源：图片懒加载；大资源做分片；路由懒加载。
+9. 可访问性：基础 a11y，图片alt，表单label。
+10. 禁止裸写DOM操作，优先框架API。

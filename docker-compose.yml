@@ -1,0 +1,31 @@
+services:
+  backend:
+    build: ./backend
+    container_name: cs-agent-backend
+    env_file:
+      - ./backend/.env
+    environment:
+      APP_ENV: production
+      DATABASE_URL: sqlite:////data/app.db
+      CHROMA_DIR: /data/chroma
+      UPLOAD_DIR: /data/uploads
+      BACKUP_DIR: /data/backups
+      MOCK_ENABLED: "false"
+      DOUYIN_CHANNEL: rpa
+      XHS_CHANNEL: rpa
+      RPA_API_KEY: ""
+    volumes:
+      - cs-data:/data
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: cs-agent-frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  cs-data:

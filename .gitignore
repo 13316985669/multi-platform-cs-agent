@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Env
+.env
+.env.local
+workers/.worker_id
+workers/.worker_id.*
+workers/.fleet.lock
+workers/.env.local
+
+# Data
+data/
+*.db
+*.sqlite3
+chroma/
+backups/
+workers/downloads/
+workers/profiles/
+
+# Node
+node_modules/
+dist/
+frontend/dist/
+
+# IDE
+.idea/
+.vscode/
+*.log

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>伪小红书创作服务平台 - 评论管理页（测试 fixture）</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; }
+  .login-form { display: none; padding: 20px; background: #fee; }
+  .comment-list { width: 520px; }
+  .comment-item { border: 1px solid #eee; padding: 10px; margin-bottom: 8px; }
+  .comment-author { font-weight: bold; font-size: 13px; }
+  .comment-content { margin-top: 4px; font-size: 13px; }
+  .reply-button { margin-top: 6px; padding: 4px 10px; background: #ff2442; color: #fff; border: none; cursor: pointer; }
+  .reply-box { display: none; margin-top: 6px; }
+  .reply-box.open { display: block; }
+  .reply-input { width: 70%; padding: 4px; }
+  .reply-submit { padding: 4px 10px; }
+  .reply-success-toast { display: none; position: fixed; top: 10px; right: 10px; background: #e6f7e6; color: #2a7a2a; padding: 8px; }
+  .replied-tag { color: #2a7a2a; font-size: 12px; margin-left: 8px; }
+</style>
+</head>
+<body>
+<div class="login-form">登录表单（可见 = 登录过期）</div>
+
+<div class="comment-list" id="list">
+  <div class="comment-item" data-cid="c_1001" data-post-url="https://xhs.local/note/n1" data-post-id="n1" data-author-id="u_1">
+    <div class="comment-author">种草小能手</div>
+    <div class="comment-content">这个多少钱呀</div>
+    <button class="reply-button" onclick="openReply(this)">回复</button>
+    <div class="reply-box">
+      <input class="reply-input">
+      <button class="reply-submit" onclick="submitReply(this)">发送</button>
+    </div>
+  </div>
+</div>
+
+<div class="reply-success-toast">回复成功</div>
+
+<h4>模拟区</h4>
+<input id="simAuthor" placeholder="昵称" value="路人甲">
+<input id="simContent" placeholder="评论内容">
+<button onclick="injectComment()">注入新评论</button>
+<button onclick="document.querySelector('.login-form').style.display='block'">切换登录过期</button>
+
+<script>
+let seq = 2000;
+
+function openReply(btn) {
+  const box = btn.parentElement.querySelector('.reply-box');
+  box.classList.add('open');
+}
+
+function submitReply(btn) {
+  const item = btn.closest('.comment-item');
+  const input = item.querySelector('.reply-input');
+  if (!input.value) return;
+  const tag = document.createElement('span');
+  tag.className = 'replied-tag';
+  tag.innerText = '已回复: ' + input.value;
+  item.appendChild(tag);
+  item.querySelector('.reply-box').classList.remove('open');
+  const toast = document.querySelector('.reply-success-toast');
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', 1500);
+}
+
+function injectComment() {
+  seq += 1;
+  const author = document.getElementById('simAuthor').value || '路人';
+  const content = document.getElementById('simContent').value || '测试评论';
+  const div = document.createElement('div');
+  div.className = 'comment-item';
+  div.setAttribute('data-cid', 'c_' + seq);
+  div.setAttribute('data-post-url', 'https://xhs.local/note/n1');
+  div.setAttribute('data-post-id', 'n1');
+  div.setAttribute('data-author-id', 'u_' + seq);
+  div.innerHTML = '<div class="comment-author"></div><div class="comment-content"></div>' +
+    '<button class="reply-button" onclick="openReply(this)">回复</button>' +
+    '<div class="reply-box"><input class="reply-input">' +
+    '<button class="reply-submit" onclick="submitReply(this)">发送</button></div>';
+  div.querySelector('.comment-author').innerText = author;
+  div.querySelector('.comment-content').innerText = content;
+  document.getElementById('list').appendChild(div);
+}
+</script>
+</body>
+</html>
